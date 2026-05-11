@@ -1,0 +1,39 @@
+# Golang
+*.o
+*.a
+*.so
+.DS_Store
+/build/
+/dist/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+
+# Dependencies
+vendor/
+
+# Generated data
+/data/
+data.json
+*.db
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
