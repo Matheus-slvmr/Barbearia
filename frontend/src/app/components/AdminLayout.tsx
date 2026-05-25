@@ -1,19 +1,17 @@
 import { Outlet, NavLink, Link, useNavigate } from "react-router";
-import { Calendar, Scissors, Users, Settings, LayoutDashboard, Home, LogOut } from "lucide-react"; // <- Adicione o LogOut
-import { useEffect } from "react";
-import { authService } from "../../services/authServices";
+import { Calendar, Scissors, Users, Settings, LayoutDashboard, Home, LogOut, User } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
+import { toast } from "sonner";
 
 export function AdminLayout() {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
-  // 1. O "Segurança" do Front-end: verifica se tem crachá
-  useEffect(() => {
-    const token = localStorage.getItem('@Barbearia:token');
-    if (!token) {
-      navigate("/login"); // Se não tem crachá, manda pro login!
-    }
-  }, [navigate]);
-
+  const handleLogout = () => {
+    logout();
+    toast.success("Logout realizado com sucesso!");
+    navigate("/");
+  };
   const navItems = [
     { path: "/admin", label: "Dashboard", icon: LayoutDashboard },
     { path: "/admin/agendamentos", label: "Agendamentos", icon: Calendar },
@@ -26,10 +24,47 @@ export function AdminLayout() {
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
       <aside className="hidden lg:flex lg:flex-col lg:w-64 bg-gray-900 text-white">
-        {/* ... (O resto do cabeçalho da sidebar fica igual) ... */}
-        
-        {/* Adicionei esta div em volta da Home e do Botão de Sair no rodapé da Sidebar */}
+        <div className="p-6 border-b border-gray-800">
+          <Link to="/" className="flex items-center gap-3">
+            <div className="bg-gradient-to-br from-orange-500 to-red-600 p-2 rounded-lg">
+              <Scissors className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h1 className="font-bold text-lg">Admin Panel</h1>
+              <p className="text-xs text-gray-400">Gerenciamento</p>
+            </div>
+          </Link>
+        </div>
+
+        <nav className="flex-1 p-4 space-y-2">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              end={item.path === "/admin"}
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                  isActive
+                    ? "bg-orange-600 text-white"
+                    : "text-gray-300 hover:bg-gray-800"
+                }`
+              }
+            >
+              <item.icon className="h-5 w-5" />
+              {item.label}
+            </NavLink>
+          ))}
+        </nav>
+
         <div className="p-4 border-t border-gray-800 space-y-2">
+          <div className="px-4 py-3 bg-gray-800 rounded-lg">
+            <div className="flex items-center gap-2 mb-1">
+              <User className="h-4 w-4 text-orange-500" />
+              <span className="text-sm font-medium">{user?.nome}</span>
+            </div>
+            <p className="text-xs text-gray-400">{user?.email}</p>
+          </div>
+
           <Link
             to="/"
             className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-800 transition-colors"
@@ -37,13 +72,13 @@ export function AdminLayout() {
             <Home className="h-5 w-5" />
             Ver Site
           </Link>
-          
+
           <button
-            onClick={() => authService.logout()}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-400 hover:bg-red-900/20 transition-colors"
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-800 transition-colors"
           >
             <LogOut className="h-5 w-5" />
-            Sair do Sistema
+            Sair
           </button>
         </div>
       </aside>

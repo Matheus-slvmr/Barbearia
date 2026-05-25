@@ -1,14 +1,17 @@
 import { useState, useEffect, useRef } from "react";
-import { Link } from "react-router";
-import { Scissors, Clock, MapPin, Phone, Mail, Instagram, Facebook, Menu, X, Send } from "lucide-react";
+import { Link, useNavigate } from "react-router";
+import { Scissors, Clock, MapPin, Phone, Mail, Instagram, Facebook, Menu, X, Send, LogOut, User as UserIcon } from "lucide-react";
 import { getConfig } from "../utils/config";
 import { storage, enviarNotificacaoWhatsApp } from "../utils/storage";
 import type { ConfiguracaoBarbearia } from "../utils/config";
 import { toast } from "sonner";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import { CalendarioAgendamento } from "../components/CalendarioAgendamento";
+import { useAuth } from "../contexts/AuthContext";
 
 export function Home() {
+  const navigate = useNavigate();
+  const { user, logout, isAuthenticated } = useAuth();
   const [config, setConfig] = useState<ConfiguracaoBarbearia | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [formAgendamento, setFormAgendamento] = useState({
@@ -27,6 +30,16 @@ export function Home() {
   useEffect(() => {
     setConfig(getConfig());
   }, []);
+
+  useEffect(() => {
+    if (user && user.tipo === "cliente") {
+      setFormAgendamento(prev => ({
+        ...prev,
+        nome: user.nome,
+        telefone: user.telefone || "",
+      }));
+    }
+  }, [user]);
 
   if (!config) return null;
 
@@ -79,8 +92,26 @@ export function Home() {
     });
   };
 
+  const handleLogout = () => {
+    logout();
+    toast.success("Logout realizado com sucesso!");
+    setFormAgendamento({
+      nome: "",
+      telefone: "",
+      servico: "",
+      data: "",
+      hora: "",
+    });
+  };
+
   const handleAgendamento = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!isAuthenticated) {
+      toast.error("Faça login para realizar um agendamento");
+      navigate("/login");
+      return;
+    }
 
     if (!formAgendamento.data || !formAgendamento.hora) {
       toast.error("Por favor, selecione uma data e horário no calendário.");
@@ -93,7 +124,7 @@ export function Home() {
 
     if (!cliente) {
       cliente = {
-        id: Date.now().toString(),
+        id: user?.id || Date.now().toString(),
         nome: formAgendamento.nome,
         telefone: formAgendamento.telefone,
       };
@@ -126,8 +157,7 @@ export function Home() {
     toast.success("Agendamento realizado! Você será redirecionado para o WhatsApp.");
 
     setFormAgendamento({
-      nome: "",
-      telefone: "",
+      ...formAgendamento,
       servico: "",
       data: "",
       hora: "",
@@ -151,7 +181,7 @@ export function Home() {
             </div>
 
             {/* Desktop Menu */}
-            <nav className="hidden md:flex gap-8">
+            <nav className="hidden md:flex gap-6 items-center">
               <button onClick={() => scrollToSection(servicosRef)} className="text-gray-300 hover:text-orange-500 transition-colors">
                 Serviços
               </button>
@@ -164,9 +194,34 @@ export function Home() {
               <button onClick={() => scrollToSection(contatoRef)} className="text-gray-300 hover:text-orange-500 transition-colors">
                 Contato
               </button>
-              <Link to="/admin" className="text-gray-400 hover:text-orange-500 transition-colors text-sm">
-                Admin
-              </Link>
+
+              {isAuthenticated ? (
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 px-3 py-2 bg-gray-800 rounded-lg border border-gray-700">
+                    <UserIcon className="h-4 w-4 text-orange-500" />
+                    <span className="text-sm text-gray-300">{user?.nome}</span>
+                  </div>
+                  {user?.tipo === "barbeiro" && (
+                    <Link to="/admin" className="text-gray-400 hover:text-orange-500 transition-colors text-sm">
+                      Admin
+                    </Link>
+                  )}
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 px-3 py-2 text-gray-400 hover:text-orange-500 transition-colors"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span className="text-sm">Sair</span>
+                  </button>
+                </div>
+              ) : (
+                <Link
+                  to="/login"
+                  className="px-4 py-2 bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-lg hover:from-orange-600 hover:to-red-700 transition-all"
+                >
+                  Entrar
+                </Link>
+              )}
             </nav>
 
             {/* Mobile Menu Button */}
@@ -193,9 +248,33 @@ export function Home() {
               <button onClick={() => scrollToSection(contatoRef)} className="block w-full text-left py-2 text-gray-300 hover:text-orange-500">
                 Contato
               </button>
-              <Link to="/admin" className="block w-full text-left py-2 text-gray-400 hover:text-orange-500">
-                Admin
-              </Link>
+
+              {isAuthenticated ? (
+                <>
+                  <div className="py-2 px-3 bg-gray-800 rounded-lg border border-gray-700">
+                    <div className="flex items-center gap-2">
+                      <UserIcon className="h-4 w-4 text-orange-500" />
+                      <span className="text-sm text-gray-300">{user?.nome}</span>
+                    </div>
+                  </div>
+                  {user?.tipo === "barbeiro" && (
+                    <Link to="/admin" className="block w-full text-left py-2 text-gray-400 hover:text-orange-500">
+                      Admin
+                    </Link>
+                  )}
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 w-full text-left py-2 text-gray-400 hover:text-orange-500"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Sair
+                  </button>
+                </>
+              ) : (
+                <Link to="/login" className="block w-full text-left py-2 text-orange-500 hover:text-orange-400 font-semibold">
+                  Entrar
+                </Link>
+              )}
             </nav>
           )}
         </div>
@@ -369,6 +448,7 @@ export function Home() {
                         onChange={(e) => setFormAgendamento({ ...formAgendamento, nome: e.target.value })}
                         className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-white"
                         placeholder="Seu nome"
+                        disabled={isAuthenticated}
                       />
                     </div>
 
@@ -383,6 +463,7 @@ export function Home() {
                         onChange={(e) => setFormAgendamento({ ...formAgendamento, telefone: e.target.value })}
                         className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-white"
                         placeholder="(11) 99999-9999"
+                        disabled={isAuthenticated}
                       />
                     </div>
                   </div>

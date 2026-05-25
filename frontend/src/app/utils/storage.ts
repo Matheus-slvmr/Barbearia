@@ -4,6 +4,7 @@ export interface Barbeiro {
   nome: string;
   telefone: string;
   email: string;
+  senha: string;
   especialidades: string[];
   foto?: string;
 }
@@ -34,6 +35,7 @@ const dadosIniciais = {
       nome: "Carlos Silva",
       telefone: "(11) 98765-4321",
       email: "carlos@barberpro.com",
+      senha: "123456",
       especialidades: ["Corte Clássico", "Barba", "Degradê"],
     },
     {
@@ -41,6 +43,7 @@ const dadosIniciais = {
       nome: "João Santos",
       telefone: "(11) 98765-4322",
       email: "joao@barberpro.com",
+      senha: "123456",
       especialidades: ["Corte Moderno", "Pigmentação", "Design"],
     },
   ] as Barbeiro[],

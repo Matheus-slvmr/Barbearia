@@ -14,6 +14,7 @@ export function Barbeiros() {
     nome: "",
     telefone: "",
     email: "",
+    senha: "",
     especialidades: [] as string[],
   });
 
@@ -43,6 +44,7 @@ export function Barbeiros() {
         nome: barbeiro.nome,
         telefone: barbeiro.telefone,
         email: barbeiro.email,
+        senha: barbeiro.senha || "",
         especialidades: barbeiro.especialidades,
       });
     } else {
@@ -51,6 +53,7 @@ export function Barbeiros() {
         nome: "",
         telefone: "",
         email: "",
+        senha: "",
         especialidades: [],
       });
     }
@@ -284,6 +287,22 @@ export function Barbeiros() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
                   placeholder="joao@barberpro.com"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Senha *
+                </label>
+                <input
+                  type="password"
+                  required
+                  value={form.senha}
+                  onChange={(e) => setForm({ ...form, senha: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  placeholder="••••••••"
+                  minLength={6}
+                />
+                <p className="text-xs text-gray-500 mt-1">Mínimo de 6 caracteres</p>
               </div>
 
               <div>
