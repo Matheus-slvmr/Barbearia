@@ -1,0 +1,43 @@
+// Isso diz ao Prisma como se conectar (não precisa mexer)
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// TABELA 1: Usuários (Serve tanto para Clientes quanto para Barbeiros/Admins)
+model Usuario {
+  id        String   @id @default(uuid())
+  nome      String
+  telefone  String   @unique
+  email     String?  @unique
+  senha     String
+  perfil    String   @default("CLIENTE") // Pode ser "CLIENTE" ou "ADMIN"
+  
+  // Relações: O Prisma entende que um usuário pode ter vários agendamentos
+  agendamentosComoCliente  Agendamento[] @relation("ClienteAgendamentos")
+  agendamentosComoBarbeiro Agendamento[] @relation("BarbeiroAgendamentos")
+
+  criadoEm  DateTime @default(now())
+}
+
+// TABELA 2: Agendamentos
+model Agendamento {
+  id        String   @id @default(uuid())
+  data      String
+  hora      String
+  servico   String
+  status    String   @default("pendente")
+  
+  // Ligando o Agendamento ao Cliente
+  clienteId String
+  cliente   Usuario @relation("ClienteAgendamentos", fields: [clienteId], references: [id])
+
+  // Ligando o Agendamento ao Barbeiro
+  barbeiroId String
+  barbeiro   Usuario @relation("BarbeiroAgendamentos", fields: [barbeiroId], references: [id])
+
+  criadoEm  DateTime @default(now())
+}
